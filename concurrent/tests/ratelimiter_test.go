@@ -1,4 +1,4 @@
-package concurrent
+package tests
 
 import (
 	"testing"
