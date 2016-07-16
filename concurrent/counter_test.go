@@ -2,12 +2,10 @@ package concurrent
 
 import (
 	"testing"
-
-	"github.com/luca-moser/belt/concurrent"
 )
 
 func TestCounter(t *testing.T) {
-	c := concurrent.NewCounter()
+	c := NewCounter()
 	defer c.Exit()
 	const result = 5
 	for i := 0; i < result; i++ {

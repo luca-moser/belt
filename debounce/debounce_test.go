@@ -3,13 +3,11 @@ package debounce
 import (
 	"testing"
 	"time"
-
-	"github.com/luca-moser/belt/debounce"
 )
 
 func TestDebounce(t *testing.T) {
 	timesExecuted := 0
-	debFunc := debounce.Debounce(func() {
+	debFunc := Debounce(func() {
 		timesExecuted++
 	}, 600)
 

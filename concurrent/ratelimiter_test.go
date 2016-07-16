@@ -3,13 +3,11 @@ package concurrent
 import (
 	"testing"
 	"time"
-
-	"github.com/luca-moser/belt/concurrent"
 )
 
 func TestRateLimiter(t *testing.T) {
 	s := time.Now()
-	limiter := concurrent.NewRateLimier(500, time.Duration(1)*time.Second)
+	limiter := NewRateLimier(500, time.Duration(1)*time.Second)
 	defer limiter.Exit()
 	for i := 0; i < 1000; i++ {
 		limiter.TryPass()

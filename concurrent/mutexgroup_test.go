@@ -3,13 +3,11 @@ package concurrent
 import (
 	"sync"
 	"testing"
-
-	"github.com/luca-moser/belt/concurrent"
 )
 
 var (
-	mg1 = concurrent.MutexGroup{}
-	mg2 = concurrent.MutexGroup{}
+	mg1 = MutexGroup{}
+	mg2 = MutexGroup{}
 
 	validObj   = &obj{}
 	invalidObj = &invobj{}
