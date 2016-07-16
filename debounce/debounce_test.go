@@ -1,4 +1,4 @@
-package tests
+package debounce
 
 import (
 	"testing"
