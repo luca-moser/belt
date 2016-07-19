@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// SQLConfig defines a simple configuration for a SQL connection
 	SQLConfig struct {
 		Name      string
 		Host      string
@@ -21,6 +22,7 @@ type (
 		Pool      PoolSettings
 	}
 
+	// PoolSettings defines the settings of a connection pool
 	PoolSettings struct {
 		MaxOpen     int
 		MaxIdle     int
@@ -29,6 +31,7 @@ type (
 		Timeout     int
 	}
 
+	// MongoDBConfig defines a simple configuration for a MongoDB connection
 	MongoDBConfig struct {
 		Host      string
 		Auth      bool
@@ -39,6 +42,7 @@ type (
 	}
 )
 
+// GetMSSQLConnection creates a new MSSQL connection with the given config
 func GetMSSQLConnection(config SQLConfig) (*sql.DB, error) {
 	var keepAlive int
 	if config.KeepAlive {
@@ -61,6 +65,7 @@ func GetMSSQLConnection(config SQLConfig) (*sql.DB, error) {
 	return conn, nil
 }
 
+// GetMySQLConnection creates a new MySQL connection with the given config
 func GetMySQLConnection(config SQLConfig) (*sql.DB, error) {
 	mysqlConfig := mysql.Config{
 		User: config.User, Passwd: config.PW,
@@ -76,6 +81,7 @@ func GetMySQLConnection(config SQLConfig) (*sql.DB, error) {
 	return conn, nil
 }
 
+// GetMongoDBConnection creates a new MongoDB session with the given config
 func GetMongoDBConnection(config MongoDBConfig) (*mgo.Session, error) {
 	var session *mgo.Session
 	var err error
