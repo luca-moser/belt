@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	MSSQLConfig struct {
+	SQLConfig struct {
 		Name      string
 		Host      string
 		User      string
@@ -29,15 +29,6 @@ type (
 		Timeout     int
 	}
 
-	MySQLConfig struct {
-		Name string
-		Host string
-		Port int
-		User string
-		PW   string
-		Pool PoolSettings
-	}
-
 	MongoDBConfig struct {
 		Host      string
 		Auth      bool
@@ -48,7 +39,7 @@ type (
 	}
 )
 
-func GetMSSQLConnection(config MSSQLConfig) (*sql.DB, error) {
+func GetMSSQLConnection(config SQLConfig) (*sql.DB, error) {
 	var keepAlive int
 	if config.KeepAlive {
 		keepAlive = 1
@@ -70,7 +61,7 @@ func GetMSSQLConnection(config MSSQLConfig) (*sql.DB, error) {
 	return conn, nil
 }
 
-func GetMySQLConnection(config MySQLConfig) (*sql.DB, error) {
+func GetMySQLConnection(config SQLConfig) (*sql.DB, error) {
 	mysqlConfig := mysql.Config{
 		User: config.User, Passwd: config.PW,
 		Net: "tcp", Addr: fmt.Sprintf("%s:%d", config.Host, config.Port), DBName: config.Name,
