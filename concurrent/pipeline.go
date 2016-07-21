@@ -1,5 +1,10 @@
 package concurrent
 
+import (
+	"sync"
+	"time"
+)
+
 // NewPipeline creates a new pipeline
 func NewPipeline() *pipeline {
 	p := &pipeline{
@@ -23,19 +28,8 @@ type pipeline struct {
 }
 
 // Adds a pipe to the end of the pipeline
-func (p *pipeline) AddPipe(f func(interface{}) interface{}) {
-	pipe := p.newpipe("", f)
-	pipe.next = p.output
-	if len(p.pipes) > 0 {
-		lastPipe := p.pipes[len(p.pipes)-1]
-		lastPipe.next = pipe.receive
-	}
-	p.pipes = append(p.pipes, &pipe)
-}
-
-// AddNamedPipe adds a named pipe to the end of the pipeline
-func (p *pipeline) AddNamedPipe(name string, f func(interface{}) interface{}) *pipe {
-	pipe := p.newpipe(name, f)
+func (p *pipeline) AddPipe(name string, buffer int, f func(interface{}) interface{}) *pipe {
+	pipe := p.newpipe(name, buffer, f)
 	pipe.next = p.output
 	if len(p.pipes) > 0 {
 		lastPipe := p.pipes[len(p.pipes)-1]
@@ -109,39 +103,54 @@ func (p *pipeline) Resume() {
 	p.resume <- struct{}{}
 }
 
-func (p *pipeline) newpipe(name string, f func(interface{}) interface{}) pipe {
+func (p *pipeline) newpipe(name string, buffer int, f func(interface{}) interface{}) pipe {
 	pi := pipe{
-		f, make(chan interface{}, 1), make(chan interface{}, 1),
+		f, make(chan interface{}, buffer), nil,
 		make(chan struct{}, 1), make(chan struct{}, 1), make(chan struct{}, 1),
-		name, false, make(chan interface{}, 100),
+		name, false, false, make(chan pipeexecution, buffer), 0, sync.Mutex{},
+	}
+	if len(name) > 0 {
+		pi.isNamed = true
 	}
 	return pi
 }
 
 type pipe struct {
-	f         func(interface{}) interface{}
-	receive   chan interface{}
-	next      chan interface{}
-	stop      chan struct{}
-	pause     chan struct{}
-	resume    chan struct{}
-	name      string
-	debug     bool
-	debugchan chan interface{}
+	f           func(interface{}) interface{}
+	receive     chan interface{}
+	next        chan interface{}
+	stop        chan struct{}
+	pause       chan struct{}
+	resume      chan struct{}
+	name        string
+	isNamed     bool
+	measure     bool
+	measurement chan pipeexecution
+	processed   int64
+	mu          sync.Mutex
 }
 
-// Results returns a buffered channel which receives the results of the pipe.
+type pipeexecution struct {
+	Name      string
+	Processed int64
+	Result    interface{}
+	Delta     time.Duration
+}
+
+// Measure returns a buffered channel which receives the results of the pipe and passed worktime.
 // The pipe's results are still sent to the next pipe in the pipeline.
-// If the receiver of the results doesn't consume them fast enough,
-// the pipe's send to the next pipe might be slowned down.
-func (p *pipe) Results() <-chan interface{} {
-	p.debugchan <- struct{}{}
-	return p.debugchan
+func (p *pipe) Measure() <-chan pipeexecution {
+	p.mu.Lock()
+	p.measure = true
+	p.mu.Unlock()
+	return p.measurement
 }
 
-// StopResults stops the pipe to send results to the channel given by Results()
-func (p *pipe) StopResults() {
-	p.debugchan <- struct{}{}
+// StopMeasuring stops the pipe to send results to the channel given by Results()
+func (p *pipe) StopMeasuring() {
+	p.mu.Lock()
+	p.measure = false
+	p.mu.Unlock()
 }
 
 func (p *pipe) init() {
@@ -150,18 +159,18 @@ func (p *pipe) init() {
 			select {
 			case <-p.stop:
 				break
-			case <-p.debugchan:
-				if p.debug {
-					p.debug = false
-				} else {
-					p.debug = true
-				}
 			case <-p.pause:
 				<-p.resume
 			case val := <-p.receive:
-				res := p.f(val)
-				if p.debug {
-					p.debugchan <- res
+				var res interface{}
+				if p.measure {
+					s := time.Now()
+					res = p.f(val)
+					p.processed++
+					p.measurement <- pipeexecution{p.name, p.processed, res, time.Since(s)}
+				} else {
+					res = p.f(val)
+					p.processed++
 				}
 				p.next <- res
 			}

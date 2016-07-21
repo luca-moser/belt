@@ -10,7 +10,7 @@ func TestPipline(t *testing.T) {
 	feedChannel := make(chan interface{})
 	for i := 0; i < 10; i++ {
 		func(i int) {
-			pipeline.AddPipe(func(input interface{}) interface{} {
+			pipeline.AddPipe("", 100, func(input interface{}) interface{} {
 				input = input.(int) + 1
 				return input
 			})
