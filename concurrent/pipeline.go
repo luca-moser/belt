@@ -111,9 +111,9 @@ func (p *pipeline) Resume() {
 
 func (p *pipeline) newpipe(name string, f func(interface{}) interface{}) pipe {
 	pi := pipe{
-		f, make(chan interface{}), make(chan interface{}),
+		f, make(chan interface{}, 1), make(chan interface{}, 1),
 		make(chan struct{}, 1), make(chan struct{}, 1), make(chan struct{}, 1),
-		name, false, make(chan interface{}),
+		name, false, make(chan interface{}, 100),
 	}
 	return pi
 }
@@ -132,7 +132,7 @@ type pipe struct {
 
 // Results returns a buffered channel which receives the results of the pipe.
 // The pipe's results are still sent to the next pipe in the pipeline.
-// If the receiver of the results doesn't consume the them fast enough,
+// If the receiver of the results doesn't consume them fast enough,
 // the pipe's send to the next pipe might be slowned down.
 func (p *pipe) Results() <-chan interface{} {
 	p.debugchan <- struct{}{}
