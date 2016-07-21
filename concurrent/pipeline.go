@@ -105,10 +105,7 @@ func (p *pipeline) newpipe(name string, buffer int, f func(interface{}) interfac
 	pi := pipe{
 		f, make(chan interface{}, buffer), nil,
 		make(chan struct{}, 1), make(chan struct{}, 1), make(chan struct{}, 1),
-		name, false, false, make(chan pipeexecution, buffer), 0, sync.Mutex{},
-	}
-	if len(name) > 0 {
-		pi.isNamed = true
+		name, false, make(chan pipeexecution, buffer), 0, sync.Mutex{},
 	}
 	return pi
 }
@@ -121,7 +118,6 @@ type pipe struct {
 	pause       chan struct{}
 	resume      chan struct{}
 	name        string
-	isNamed     bool
 	measure     bool
 	measurement chan pipeexecution
 	processed   int64
