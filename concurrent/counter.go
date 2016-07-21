@@ -2,11 +2,11 @@ package concurrent
 
 // counter implements a thread-safe counter
 type counter struct {
-	val  int
+	val  int64
 	incr chan struct{}
 	decr chan struct{}
 	exit chan struct{}
-	res  chan int
+	res  chan int64
 }
 
 func (c *counter) init() {
@@ -37,7 +37,7 @@ func (c *counter) Exit() {
 	c.exit <- struct{}{}
 }
 
-func (c *counter) Result() int {
+func (c *counter) Result() int64 {
 	return <-c.res
 }
 
@@ -46,7 +46,7 @@ func NewCounter() *counter {
 	c := &counter{
 		incr: make(chan struct{}),
 		decr: make(chan struct{}),
-		res:  make(chan int),
+		res:  make(chan int64),
 		exit: make(chan struct{}),
 	}
 	c.init()
