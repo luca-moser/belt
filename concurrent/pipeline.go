@@ -10,7 +10,7 @@ func NewPipeline() *pipeline {
 	p := &pipeline{
 		make(chan interface{}),
 		make(chan struct{}, 1), make(chan struct{}, 1), make(chan struct{}, 1),
-		false, false, make([]*pipe, 0), NewCounter(), NewCounter(),
+		false, false, make([]*pipe, 0),
 	}
 	return p
 }
@@ -23,8 +23,6 @@ type pipeline struct {
 	isStopped bool
 	isPaused  bool
 	pipes     []*pipe
-	processed *counter
-	msgpassed *counter
 }
 
 // Adds a pipe to the end of the pipeline
