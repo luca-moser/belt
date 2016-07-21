@@ -23,16 +23,18 @@ func TestPipline(t *testing.T) {
 		}
 	}()
 	anyValueWrong := false
+	anyPass := false
 	go func() {
 		for i := 0; i < 10; i++ {
 			num := <-out
 			if num != i+10 {
 				anyValueWrong = true
 			}
+			anyPass = true
 		}
 	}()
 	<-time.After(time.Duration(1) * time.Second)
-	if anyValueWrong {
+	if anyValueWrong || !anyPass {
 		t.Fail()
 	}
 }
