@@ -74,7 +74,7 @@ func TestLockingObjs(t *testing.T) {
 	}
 }
 
-func TestUnlokcingObjs(t *testing.T) {
+func TestUnlockingObjs(t *testing.T) {
 	if err := mg2.Unlock("mutex_a", "mutex_b"); err != nil {
 		t.Fatal(err)
 	}
