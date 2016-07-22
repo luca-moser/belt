@@ -44,6 +44,7 @@ func (p *pipeline) Start(input <-chan interface{}) <-chan interface{} {
 		p.pipes[i].init()
 	}
 	go func() {
+	exit:
 		for {
 			select {
 			// prioritize stop channel
@@ -52,7 +53,7 @@ func (p *pipeline) Start(input <-chan interface{}) <-chan interface{} {
 					pipe.stop <- struct{}{}
 				}
 				p.isStopped = true
-				break
+				break exit
 			default:
 				// pause, resume or send input to first channel
 				select {
