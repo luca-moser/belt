@@ -15,6 +15,7 @@ func NewPipeline() *pipeline {
 	return p
 }
 
+// a pipeline is a set of tasks which run concurrently
 type pipeline struct {
 	output    chan interface{}
 	stop      chan struct{}
@@ -111,6 +112,8 @@ func (p *pipeline) newpipe(name string, buffer int, f func(interface{}) interfac
 	return pi
 }
 
+// a pipe describes a concurrent task which receives input values and
+// produces new values which get sent to the next pipe in the chain.
 type pipe struct {
 	f           func(interface{}) interface{}
 	receive     chan interface{}
@@ -148,6 +151,8 @@ func (p *pipe) StopMeasuring() {
 	p.mu.Unlock()
 }
 
+// fires up a goroutine which listens for stop/pause/resume signals or
+// simply calls the given pipe function with the received input.
 func (p *pipe) init() {
 	go func() {
 	exit:
@@ -162,12 +167,11 @@ func (p *pipe) init() {
 				if p.measure {
 					s := time.Now()
 					res = p.f(val)
-					p.processed++
 					p.measurement <- pipeexecution{p.name, p.processed, res, time.Since(s)}
 				} else {
 					res = p.f(val)
-					p.processed++
 				}
+				p.processed++
 				p.next <- res
 			}
 		}
