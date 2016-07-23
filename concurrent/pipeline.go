@@ -150,10 +150,11 @@ func (p *pipe) StopMeasuring() {
 
 func (p *pipe) init() {
 	go func() {
+	exit:
 		for {
 			select {
 			case <-p.stop:
-				break
+				break exit
 			case <-p.pause:
 				<-p.resume
 			case val := <-p.receive:
