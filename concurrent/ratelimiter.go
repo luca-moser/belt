@@ -11,18 +11,18 @@ type simpleratelimiter struct {
 
 func (rl *simpleratelimiter) init() {
 	go func() {
-	exitRateLimiter:
+	exit:
 		for {
 			select {
 			case <-time.After(rl.duration):
 			case <-rl.exit:
-				break
+				break exit
 			}
 			for i := 0; i < rl.rate; i++ {
 				select {
 				case <-rl.limiter:
 				case <-rl.exit:
-					break exitRateLimiter
+					break exit
 				}
 			}
 		}

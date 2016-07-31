@@ -1,5 +1,7 @@
 package concurrent
 
+import "sync"
+
 // counter implements a thread-safe counter
 type counter struct {
 	val  int64
@@ -11,6 +13,7 @@ type counter struct {
 
 func (c *counter) init() {
 	go func() {
+	exit:
 		for {
 			select {
 			case <-c.incr:
@@ -18,7 +21,7 @@ func (c *counter) init() {
 			case <-c.decr:
 				c.val--
 			case <-c.exit:
-				break
+				break exit
 			case c.res <- c.val:
 			}
 		}
@@ -51,4 +54,29 @@ func NewCounter() *counter {
 	}
 	c.init()
 	return c
+}
+
+type simplecounter struct {
+	sync.Mutex
+	num int64
+}
+
+func (sc *simplecounter) Incr() {
+	sc.Lock()
+	sc.num++
+	sc.Unlock()
+}
+
+func (sc *simplecounter) Decr() {
+	sc.Lock()
+	sc.num--
+	sc.Unlock()
+}
+
+func (sc *simplecounter) Val() int64 {
+	return sc.num
+}
+
+func NewSimpleCounter() *simplecounter {
+	return &simplecounter{}
 }
