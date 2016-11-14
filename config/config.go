@@ -28,13 +28,16 @@ func LoadJSONConfig(config interface{}, configPath string) {
 
 // LoadFromPathOrEnvIfSet loads the given JSON from the given path or env variable (if set).
 // Optionally copies the config file from the given path to the env path.
-func LoadFromPathOrEnvIfSet(config interface{}, path string, envPath string, copySample bool) {
+func LoadFromPathOrEnvIfSet(config interface{}, configPath string, envPath string, copySample bool) {
 	configEnvPath := os.Getenv(envPath)
 	if len(configEnvPath) == 0 {
-		LoadJSONConfig(config, path)
+		LoadJSONConfig(config, configPath)
 	} else {
 		if copySample {
-			MoveSampleConfig(path, configEnvPath)
+			// only copy sample config if it doesn't exist in the dest
+			if _, err := os.Stat(configEnvPath); err != nil {
+				MoveSampleConfig(configPath, configEnvPath)
+			}
 		}
 		LoadJSONConfig(config, configEnvPath)
 	}
