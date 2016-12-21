@@ -36,7 +36,15 @@ func LoadFromPathOrEnvIfSet(config interface{}, configPath string, envPath strin
 		if copySample {
 			// only copy sample config if it doesn't exist in the dest
 			if _, err := os.Stat(configEnvPath); err != nil {
-				MoveSampleConfig(configPath, configEnvPath)
+				if err == os.ErrNotExist {
+					// check if the sample config exists
+					if _, err2 := os.Stat(configPath); err2 != nil {
+						panic(err2)
+					}
+					MoveSampleConfig(configPath, configEnvPath)
+				} else {
+					panic(err)
+				}
 			}
 		}
 		LoadJSONConfig(config, configEnvPath)
