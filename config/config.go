@@ -36,12 +36,14 @@ func LoadFromPathOrEnvIfSet(config interface{}, configPath string, envPath strin
 		if copySample {
 			// only copy sample config if it doesn't exist in the dest
 			if _, err := os.Stat(configEnvPath); err != nil {
-				if err == os.ErrNotExist {
+				if os.IsNotExist(err) {
 					// check if the sample config exists
 					if _, err2 := os.Stat(configPath); err2 != nil {
 						panic(err2)
 					}
-					MoveSampleConfig(configPath, configEnvPath)
+					if mvErr := MoveSampleConfig(configPath, configEnvPath); mvErr != nil {
+						panic(mvErr)
+					}
 				} else {
 					panic(err)
 				}
@@ -58,7 +60,7 @@ func MoveSampleConfig(samplePath string, destPath string) error {
 		return err
 	}
 	defer source.Close()
-	dest, err := os.Open(destPath)
+	dest, err := os.OpenFile(destPath, os.O_RDWR|os.O_CREATE, 0777)
 	if err != nil {
 		return err
 	}
